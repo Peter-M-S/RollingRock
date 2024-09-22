@@ -6,22 +6,43 @@ class Rock(set):
     def __init__(self):
         super().__init__()
         self.footprint = {(0, 0)}
+        self.path = ""
 
     def at_start(self, start: tuple[int, int]):
         self.footprint = {start}
+    @property
+    def is_up(self)->bool:
+        return len(self.footprint) == 1
+
+    @property
+    def is_in_x_axis(self) -> bool:
+        if self.is_up: return False
+        (x0, y0), (x1, y1 ) = self.footprint
+        return x0 != x1
+
+    @property
+    def is_in_y_axis(self) -> bool:
+        if self.is_up: return False
+        (x0, y0), (x1, y1 ) = self.footprint
+        return y0 != y1
+
 
     def move(self, direction: str) -> None:
-        if len(self.footprint) == 1:  # rock upright
+        if self.is_up:  # rock upright
             x, y = list(self.footprint)[0]
             match direction:
                 case "d":  # tilt to right (positive x)
                     self.footprint = {(x + 1, y), (x + 2, y)}
+                    self.path += "d"
                 case "a":  # tilt to left (negative x)
                     self.footprint = {(x - 1, y), (x - 2, y)}
+                    self.path += "a"
                 case "x":  # tilt to fwd (positive y)
                     self.footprint = {(x, y + 1), (x, y + 2)}
-                case "w":  # tilt to right (positive x)
+                    self.path += "x"
+                case "w":  # tilt to right (negative y)
                     self.footprint = {(x, y - 1), (x, y - 2)}
+                    self.path += "w"
                 case _:
                     print("unknown direction")
         elif len(self.footprint) == 2:  # rock flat
@@ -31,24 +52,32 @@ class Rock(set):
                 match direction:
                     case "d":  # roll to right (positive x)
                         self.footprint = {(x0 + 1, y0), (x1 + 1, y1)}
+                        self.path += "d"
                     case "a":  # roll to left (negative x)
                         self.footprint = {(x0 - 1, y0), (x1 - 1, y1)}
+                        self.path += "a"
                     case "x":  # tilt to fwd (positive y)
                         self.footprint = {(x0, max(y0, y1) + 1)}
-                    case "w":  # tilt to back (negative x)
+                        self.path += "x"
+                    case "w":  # tilt to back (negative y)
                         self.footprint = {(x0, min(y0, y1) - 1)}
+                        self.path += "w"
                     case _:
                         print("unknown direction")
             else:  # rock in x-axis
                 match direction:
                     case "d":  # roll to right (positive x)
                         self.footprint = {(max(x0, x1) + 1, y0)}
+                        self.path += "d"
                     case "a":  # roll to left (negative x)
                         self.footprint = {(min(x0, x1) - 1, y0)}
+                        self.path += "a"
                     case "x":  # roll to fwd (positive y)
                         self.footprint = {(x0, y0 + 1), (x1, y1 + 1)}
-                    case "w":  # roll back (negative x)
+                        self.path += "x"
+                    case "w":  # roll back (negative y)
                         self.footprint = {(x0, y0 - 1), (x1, y1 - 1)}
+                        self.path += "w"
                     case _:
                         print("unknown direction")
         else:
@@ -179,6 +208,7 @@ if __name__ == '__main__':
     rock.at_start(g.start)
     rock.move("d")
     print(rock.footprint)
+    print(rock.is_up, rock.is_in_x_axis, rock.is_in_y_axis)
     rock.undo("d")
     g.render(rock)
 

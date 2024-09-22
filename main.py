@@ -21,7 +21,6 @@ def main(filename: str | None = None) -> None:
     grid = Grid(filename)
     rock = Rock()
     rock.at_start(grid.start)
-    player_path = ""
 
     grid.render(rock)
     while True:
@@ -30,10 +29,9 @@ def main(filename: str | None = None) -> None:
         if not rock.is_valid(grid):
             print("Fallen off grid :-(")
             break
-        player_path += d
         grid.render(rock)
         if rock.is_at_goal(grid):
-            print(f"Success in {len(player_path)} steps: {player_path}!")
+            print(f"Success in {len(rock.path)} steps: {rock.path}!")
             break
 
 
