@@ -1,9 +1,9 @@
 Rolling Rock
-- console game -
-
-instructions:
+Type:
+  console game
+Instructions:
   start main 
-how to play:
+How to play:
   A 2-block rock (R) is standing upright on the start (S) position.
   Moving it to any direction (WADX) it will tilt and lie flat on ther adjacent two fileds.
   Moving a flat rock over its long sides will roll it to the two adjacent fields, moving it over its short sides it will stand upright again.
