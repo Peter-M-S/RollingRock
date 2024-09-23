@@ -8,28 +8,28 @@ class Rock(set):
         self.footprint = {(0, 0)}
         self.path = ""
 
-    def at_start(self, start: tuple[int, int]):
+    def to_position(self, start: tuple[int, int]):
         self.footprint = {start}
+
     @property
-    def is_up(self)->bool:
+    def is_up(self) -> bool:
         return len(self.footprint) == 1
 
     @property
     def is_in_x_axis(self) -> bool:
         if self.is_up: return False
-        (x0, y0), (x1, y1 ) = self.footprint
+        (x0, y0), (x1, y1) = self.footprint
         return x0 != x1
 
     @property
     def is_in_y_axis(self) -> bool:
         if self.is_up: return False
-        (x0, y0), (x1, y1 ) = self.footprint
+        (x0, y0), (x1, y1) = self.footprint
         return y0 != y1
-
 
     def move(self, direction: str) -> None:
         if self.is_up:  # rock upright
-            x, y = list(self.footprint)[0]
+            (x, y), *_ = self.footprint
             match direction:
                 case "d":  # tilt to right (positive x)
                     self.footprint = {(x + 1, y), (x + 2, y)}
@@ -40,15 +40,15 @@ class Rock(set):
                 case "x":  # tilt to fwd (positive y)
                     self.footprint = {(x, y + 1), (x, y + 2)}
                     self.path += "x"
-                case "w":  # tilt to right (negative y)
+                case "w":  # tilt to back (negative y)
                     self.footprint = {(x, y - 1), (x, y - 2)}
                     self.path += "w"
                 case _:
                     print("unknown direction")
+
         elif len(self.footprint) == 2:  # rock flat
-            x0, y0 = list(self.footprint)[0]
-            x1, y1 = list(self.footprint)[1]
-            if x0 == x1:  # rock in y-axis
+            (x0, y0), (x1, y1) = self.footprint
+            if self.is_in_y_axis:  # rock in y-axis
                 match direction:
                     case "d":  # roll to right (positive x)
                         self.footprint = {(x0 + 1, y0), (x1 + 1, y1)}
@@ -98,8 +98,8 @@ class Rock(set):
 
 
 class Grid:
-
     GRIDFIELD = u"\u25A2"
+
     # GRIDFIELD = "-"
     # GRIDFIELD = "#"
 
@@ -164,6 +164,8 @@ class Grid:
         for x, y in self.positions:
             self.cols = max(x, self.cols)
             self.rows = max(y, self.rows)
+        self.cols += 1
+        self.rows += 1
 
     def get_positions(self, filename: str) -> None:
         # x = columns, y = rows
@@ -205,7 +207,7 @@ if __name__ == '__main__':
     g = Grid()
     print(g.rows, g.cols)
     rock = Rock()
-    rock.at_start(g.start)
+    rock.to_position(g.start)
     rock.move("d")
     print(rock.footprint)
     print(rock.is_up, rock.is_in_x_axis, rock.is_in_y_axis)

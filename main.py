@@ -20,7 +20,7 @@ def main(filename: str | None = None) -> None:
         filename = "default_grid.txt"
     grid = Grid(filename)
     rock = Rock()
-    rock.at_start(grid.start)
+    rock.to_position(grid.start)
 
     grid.render(rock)
     while True:
