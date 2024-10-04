@@ -1,4 +1,6 @@
 from random import choice
+from collections import deque
+import time
 
 
 class Rock(set):
@@ -87,6 +89,7 @@ class Rock(set):
         opposites: dict = {"d": "a", "a": "d", "w": "x", "x": "w"}
         d = opposites[direction]
         self.move(d)
+        self.path = self.path[:-2]
 
     def is_at_goal(self, grid) -> bool:
         # todo How to typehint a class that will follow?
@@ -98,16 +101,18 @@ class Rock(set):
 
 
 class Grid:
-    GRIDFIELD = u"\u25A2"
+    GRID_FIELD = u"\u25A2"
 
-    # GRIDFIELD = "-"
-    # GRIDFIELD = "#"
+    # GRID_FIELD = "-"
+    # GRID_FIELD = "#"
 
     @classmethod
-    def generate_grid_file(cls, n: int, filename: str = "random_grid.txt") -> None:
+    def generate_grid_file(cls, n: int = None, filename: str = None) -> str:
         # randomly choose of "wadx" a string of length n
         # starting at 0,0 follow path and store footprint in grid
         # save grid to filename
+        if n is None:
+            n = choice(range(10, 21))
         rock = Rock()
         path = [choice("wadx") for _ in range(n)]
         grid = rock.footprint
@@ -141,14 +146,18 @@ class Grid:
                 elif (x, y) == goal:
                     line += "G"
                 else:
-                    line += cls.GRIDFIELD
+                    line += cls.GRID_FIELD
             line += "\n"
             lines.append(line)
+
+        if filename is None:
+            filename = f"random_grid_{int(time.time())}.txt"
 
         with open(filename, "w") as f:
             f.writelines(lines)
 
-        print(f"Grid with >={n} steps created and saved as {filename}.")
+        return filename
+        # print(f"Grid with >={n} steps created and saved as {filename}.")
         # print(f"Moves: {''.join(path)}")
 
     def __init__(self, filename: str = None):
@@ -176,7 +185,7 @@ class Grid:
                 x = -1
                 for c in line:
                     x += 1
-                    if c not in f"SG-#{self.GRIDFIELD}": continue
+                    if c not in f"SG-#{self.GRID_FIELD}": continue
                     if c == "S":
                         self.start = (x, y)
                     if c == "G":
@@ -196,10 +205,50 @@ class Grid:
                 elif (x, y) == self.goal:
                     a += "G"
                 else:
-                    a += self.GRIDFIELD
+                    a += self.GRID_FIELD
                 a += " "
             print(a)
         print()
+
+    def find_valid_moves(self, rock: Rock) -> list[tuple]:
+        possibles: list = []
+        for m in "wadx":
+            rock.move(m)
+            if rock.is_valid(self):
+                possibles.append((m, rock.footprint))
+            rock.undo(m)
+        return possibles
+
+    def solve(self) -> str:
+
+        # find string of shortest "wadx" path
+        # bfs, iter
+
+        def bfs():
+            rock = Rock()
+            rock.to_position(self.start)
+
+            queue = deque()  # list of state = (footprint, path) to check
+            queue.append((rock.footprint, []))
+            seen: set = set()  # tuples of footprints
+
+            while queue:
+                rock.footprint, path = queue.popleft()
+
+                if tuple(rock.footprint) in seen: continue
+
+                seen.add(tuple(rock.footprint))
+
+                if rock.is_at_goal(self): return path
+
+                possibles: list = self.find_valid_moves(rock)  # list of (wadx, footprint)
+                for m, fp in possibles:
+                    if tuple(fp) not in seen:
+                        queue.append((fp, path + [m]))
+
+        path = bfs()
+
+        return "".join(path)
 
 
 if __name__ == '__main__':
@@ -215,5 +264,7 @@ if __name__ == '__main__':
     g.render(rock)
 
     Grid.generate_grid_file(20)
-    g = Grid("random_grid.txt")
+    g = Grid("default_grid.txt")
     g.render(rock)
+
+    print(g.solve())
